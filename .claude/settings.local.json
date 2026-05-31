@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh api *)",
+      "Bash(ls ~/.claude/skills 2>/dev/null || echo \"no skills dir yet\")",
+      "Bash(mkdir -p ~/.claude/skills)",
+      "Bash(npx --yes uipro-cli init --ai claude)",
+      "Bash(claude mcp *)",
+      "Read(//usr/local/bin/**)",
+      "Read(//Users/snehalchauhan/.npm-global/bin/**)",
+      "Bash(npx claude *)",
+      "Bash(find /usr/local /opt/homebrew ~/.local -name \"claude\" -type f 2>/dev/null | head -5)",
+      "Bash(cat ~/.claude.json 2>/dev/null || echo \"not found\")",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --no-src-dir --import-alias \"@/*\" --yes)"
+    ]
+  }
+}
