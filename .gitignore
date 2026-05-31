@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local / duplicate assets
+/model/
+.cursor/
+.claude/settings.local.json
+.claude/launch.json

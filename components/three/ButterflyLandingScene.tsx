@@ -1,0 +1,67 @@
+'use client'
+
+import { Canvas } from '@react-three/fiber'
+import { Preload } from '@react-three/drei'
+import * as THREE from 'three'
+import { Suspense } from 'react'
+import HdriEnvironment from './sky/HdriEnvironment'
+import GLBButterfly from './butterfly/GLBButterfly'
+import ButterflyChaseCamera from './ButterflyChaseCamera'
+import PollenField from './PollenField'
+import FlightPath from './FlightPath'
+import MilestoneObjects from './MilestoneObjects'
+import LandscapeTrees from './LandscapeTrees'
+import { INTRO_CAMERA_POSITION } from '@/lib/introCamera'
+
+export default function ButterflyLandingScene() {
+  return (
+    <Canvas
+      camera={{
+        position: [
+          INTRO_CAMERA_POSITION.x,
+          INTRO_CAMERA_POSITION.y,
+          INTRO_CAMERA_POSITION.z,
+        ],
+        fov: 50,
+        near: 0.01,
+        far: 200000,
+      }}
+      gl={{ antialias: true, alpha: false }}
+      style={{ background: 'transparent' }}
+      dpr={[1, 2]}
+      shadows
+      onCreated={({ gl, scene }) => {
+        gl.toneMapping = THREE.ACESFilmicToneMapping
+        gl.toneMappingExposure = 1.0
+        gl.shadowMap.enabled = true
+        gl.shadowMap.type = THREE.PCFShadowMap
+        scene.fog = new THREE.Fog(0xc9dff0, 35, 110)
+      }}
+    >
+      <HdriEnvironment />
+
+      <Suspense fallback={null}>
+        <LandscapeTrees />
+      </Suspense>
+
+      <ambientLight intensity={0.15} color="#ffffff" />
+      <directionalLight
+        position={[40, 60, 20]}
+        intensity={0.85}
+        color="#fff8ee"
+        castShadow
+        shadow-mapSize={[2048, 2048]}
+      />
+
+      <FlightPath />
+      <MilestoneObjects />
+      <ButterflyChaseCamera />
+      <Suspense fallback={null}>
+        <GLBButterfly />
+      </Suspense>
+      <PollenField />
+
+      <Preload all />
+    </Canvas>
+  )
+}
