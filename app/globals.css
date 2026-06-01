@@ -1024,23 +1024,35 @@ html.is-mobile body {
     line-height: 1;
   }
 
+  .ui-overlay {
+    overflow: visible;
+  }
+
   /* ── 3D floating milestone text (replaces glass block) ──────────── */
   .mobile-m3d {
     position: fixed;
-    top: calc(3.75rem + env(safe-area-inset-top, 0px));
+    top: calc(3.25rem + env(safe-area-inset-top, 0px));
     left: 50%;
+    right: auto;
+    bottom: calc(8.75rem + env(safe-area-inset-bottom, 0px));
     transform: translateX(-50%);
     width: min(94vw, 400px);
     z-index: 42;
-    pointer-events: none;
+    pointer-events: auto;
     text-align: center;
     transition: opacity 0.45s ease;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 0.25rem 1.25rem;
   }
 
   .mobile-m3d__stage {
     perspective: 720px;
-    perspective-origin: 50% 40%;
+    perspective-origin: 50% 35%;
     transform-style: preserve-3d;
+    overflow: visible;
+    padding-bottom: 0.75rem;
   }
 
   .mobile-m3d .m3d-layer {
@@ -1071,8 +1083,8 @@ html.is-mobile body {
       transform: translate3d(
         0,
         0,
-        calc(12px + var(--m3d-depth, 0) * 48px)
-      ) rotateX(calc(10deg - var(--m3d-depth, 0) * 6deg));
+        calc(8px + var(--m3d-depth, 0) * 28px)
+      ) rotateX(calc(8deg - var(--m3d-depth, 0) * 4deg));
       filter: blur(0);
     }
   }
@@ -1123,10 +1135,10 @@ html.is-mobile body {
   }
 
   .mobile-m3d__body {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     line-height: 1.55;
     color: #475569;
-    margin: 0;
+    margin: 0 0 0.35rem;
     max-width: 36ch;
     margin-inline: auto;
     text-shadow: 0 1px 6px rgba(255, 255, 255, 0.8);
@@ -1153,7 +1165,8 @@ html.is-mobile body {
   .mobile-m3d__stat-label {
     font-size: 0.68rem;
     color: #64748b;
-    max-width: 22ch;
+    max-width: 24ch;
+    line-height: 1.35;
   }
 
   .landing-vignette {
@@ -1162,13 +1175,6 @@ html.is-mobile body {
       transparent 42%,
       rgba(255, 255, 255, 0.12) 100%
     );
-  }
-
-  /* Keep butterfly zone clear — less UI over the lower center */
-  .mobile-m3d {
-    top: calc(3.25rem + env(safe-area-inset-top, 0px));
-    max-height: 32dvh;
-    overflow: hidden;
   }
 
   /* Mobile journey bar ───────────────────────────────────────────── */
