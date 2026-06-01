@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { getButterflyFlightCurve } from '@/lib/butterflyScrollPath'
+import { useIsMobile } from '@/lib/useMediaQuery'
 import {
   extractMeshesByKind,
   normalizeLandscapeGroup,
@@ -22,12 +23,16 @@ const MOUNTAIN_SLOTS = [
 export default function LandscapeMountains() {
   const { scene } = useGLTF(TREE_PACK_PATH)
   const curve = useMemo(() => getButterflyFlightCurve(), [])
+  const isMobile = useIsMobile()
 
   const mountains = useMemo(() => {
     const base = extractMeshesByKind(scene, 'mountain')
     const group = new THREE.Group()
+    const slots = isMobile
+      ? MOUNTAIN_SLOTS.filter((_, i) => i % 2 === 0)
+      : MOUNTAIN_SLOTS
 
-    MOUNTAIN_SLOTS.forEach((slot, i) => {
+    slots.forEach((slot, i) => {
       const pathPt = curve.getPointAt(slot.t)
       const chunk = base.clone(true)
       normalizeLandscapeGroup(
@@ -47,7 +52,7 @@ export default function LandscapeMountains() {
     })
 
     return group
-  }, [scene, curve])
+  }, [scene, curve, isMobile])
 
   return <primitive object={mountains} />
 }

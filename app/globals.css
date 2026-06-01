@@ -257,6 +257,11 @@ body {
   background: #ffffff;
   overflow-x: hidden;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html.is-mobile body {
+  overscroll-behavior-y: none;
 }
 
 .scroll-container {
@@ -293,8 +298,9 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
+  height: 100dvh;
   z-index: 1;
 }
 
@@ -302,10 +308,12 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
+  height: 100dvh;
   z-index: 10;
   pointer-events: none;
+  overflow: hidden;
 }
 
 .ui-overlay a, .ui-overlay button { pointer-events: all; }
@@ -884,13 +892,221 @@ body {
   transform: translateY(-1px);
 }
 
+/* ── Mobile journey bar (replaces left sidebar) ───────────────────── */
+.mobile-journey {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .milestone-scene {
     right: 50%;
     transform: translateX(50%);
+    width: min(94vw, 420px);
+    bottom: calc(10vh + env(safe-area-inset-bottom, 0px));
+    perspective-origin: 50% 92%;
+  }
+
+  .milestone-card {
+    max-height: min(46dvh, 440px);
+    overflow: hidden;
+  }
+
+  .milestone-card__inner {
+    max-height: min(46dvh, 440px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding-bottom: 0.25rem;
+  }
+
+  .milestone-card .mc-icon-strip {
+    padding: 1rem 1.15rem 0.75rem;
+  }
+
+  .milestone-card .mc-title,
+  .milestone-card .mc-sub,
+  .milestone-card .mc-body,
+  .milestone-card .mc-services,
+  .milestone-card .mc-actions,
+  .milestone-card .mc-stat {
+    padding-left: 1.15rem;
+    padding-right: 1.15rem;
+  }
+
+  .mc-title {
+    font-size: clamp(1.35rem, 5.5vw, 1.85rem);
+  }
+
+  .mc-body {
+    font-size: 0.82rem;
+    line-height: 1.6;
+  }
+
+  .mc-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding-bottom: 1.1rem !important;
+  }
+
+  .mc-btn {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .mc-btn--fly {
+    margin-left: 0;
+    order: -1;
+  }
+
+  .mc-chip {
+    font-size: 0.65rem;
+  }
+
+  .is-touch .milestone-card.is-focused .milestone-card__inner {
+    animation: none;
+  }
+
+  .intro-hero__center {
     width: min(92vw, 420px);
-    bottom: 8vh;
-    perspective-origin: 50% 88%;
+    padding: 1.5rem 1.35rem 1.35rem;
+    max-height: min(72dvh, 520px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .intro-hero__headline {
+    font-size: clamp(1.45rem, 6vw, 2rem);
+  }
+
+  .intro-hero__btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .intro-hero__chevron {
+    bottom: calc(5vh + env(safe-area-inset-bottom, 0px));
+  }
+
+  .scroll-fly-hint {
+    bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px));
+    font-size: 0.65rem;
+    z-index: 35;
+  }
+
+  .mobile-journey {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 45;
+    pointer-events: all;
+    padding: 0.55rem 0.75rem calc(0.65rem + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(
+      to top,
+      rgba(220, 233, 248, 0.96) 55%,
+      rgba(220, 233, 248, 0.72) 85%,
+      transparent
+    );
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .mobile-journey__meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0 0.15rem;
+  }
+
+  .mobile-journey__step {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #6366f1;
+    flex-shrink: 0;
+  }
+
+  .mobile-journey__label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: right;
+  }
+
+  .mobile-journey__track {
+    height: 3px;
+    border-radius: 999px;
+    background: rgba(99, 102, 241, 0.15);
+    overflow: hidden;
+  }
+
+  .mobile-journey__fill {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #6366f1, #22d3ee);
+    transition: width 0.25s ease;
+  }
+
+  .mobile-journey__dots {
+    display: flex;
+    gap: 0.35rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    padding: 0.15rem 0.1rem 0.05rem;
+    scrollbar-width: none;
+  }
+
+  .mobile-journey__dots::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-journey__dot {
+    flex-shrink: 0;
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    border: none;
+    padding: 0;
+    background: rgba(99, 102, 241, 0.25);
+    scroll-snap-align: center;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .mobile-journey__dot.is-done {
+    background: color-mix(in srgb, var(--dot-color, #6366f1) 55%, white);
+  }
+
+  .mobile-journey__dot.is-active {
+    width: 22px;
+    background: var(--dot-color, #6366f1);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--dot-color, #6366f1) 65%, transparent);
+  }
+
+  .nav-dialog {
+    width: min(94vw, 480px);
+    max-height: min(86dvh, 600px);
+    padding: 1.35rem 1.25rem 1.2rem;
+  }
+
+  .landing-vignette {
+    background: radial-gradient(
+      ellipse at 50% 42%,
+      transparent 42%,
+      rgba(255, 255, 255, 0.18) 100%
+    );
   }
 }
 

@@ -4,6 +4,7 @@ import { Canvas } from '@react-three/fiber'
 import { Preload } from '@react-three/drei'
 import * as THREE from 'three'
 import { Suspense } from 'react'
+import { useIsMobile } from '@/lib/useMediaQuery'
 import HdriEnvironment from './sky/HdriEnvironment'
 import GLBButterfly from './butterfly/GLBButterfly'
 import ButterflyChaseCamera from './ButterflyChaseCamera'
@@ -15,6 +16,8 @@ import LandscapeTrees from './LandscapeTrees'
 import { INTRO_CAMERA_POSITION } from '@/lib/introCamera'
 
 export default function ButterflyLandingScene() {
+  const isMobile = useIsMobile()
+
   return (
     <Canvas
       camera={{
@@ -29,14 +32,14 @@ export default function ButterflyLandingScene() {
       }}
       gl={{ antialias: true, alpha: false }}
       style={{ background: 'transparent' }}
-      dpr={[1, 2]}
-      shadows
+      dpr={isMobile ? [1, 1.35] : [1, 2]}
+      shadows={!isMobile}
       onCreated={({ gl, scene }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping
         gl.toneMappingExposure = 1.0
-        gl.shadowMap.enabled = true
-        gl.shadowMap.type = THREE.PCFShadowMap
-        scene.fog = new THREE.Fog(0xc9dff0, 40, 125)
+        gl.shadowMap.enabled = !isMobile
+        if (!isMobile) gl.shadowMap.type = THREE.PCFShadowMap
+        scene.fog = new THREE.Fog(0xc9dff0, isMobile ? 28 : 40, isMobile ? 95 : 125)
       }}
     >
       <HdriEnvironment />
@@ -51,8 +54,8 @@ export default function ButterflyLandingScene() {
         position={[40, 60, 20]}
         intensity={0.85}
         color="#fff8ee"
-        castShadow
-        shadow-mapSize={[2048, 2048]}
+        castShadow={!isMobile}
+        shadow-mapSize={isMobile ? [1024, 1024] : [2048, 2048]}
       />
 
       <FlightPath />

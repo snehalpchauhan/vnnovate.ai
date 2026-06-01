@@ -1,4 +1,5 @@
 import { PATH_MILESTONES, type PathMilestone } from './pathMilestones'
+import { isMobileViewport } from './viewport'
 
 /** Milestones the user has already flown past. */
 export function getPassedMilestones(progress: number): PathMilestone[] {
@@ -37,6 +38,15 @@ export function getSidebarColumnCount(passedCount: number): number {
 
 /** Fallback card rect when scroll is too fast to read live DOM dimensions. */
 export function getDefaultMilestoneCardRect(): DOMRect {
+  if (isMobileViewport()) {
+    const width = Math.min(window.innerWidth * 0.94, 420)
+    const height = Math.min(window.innerHeight * 0.46, 440)
+    const left = (window.innerWidth - width) / 2
+    const bottomInset = Math.max(100, window.innerHeight * 0.14)
+    const top = window.innerHeight - height - bottomInset
+    return new DOMRect(left, top, width, height)
+  }
+
   const width = Math.min(window.innerWidth * 0.58, 640)
   const height = Math.min(window.innerHeight * 0.52, 520)
   const left = window.innerWidth - width - window.innerWidth * 0.04

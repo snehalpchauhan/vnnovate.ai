@@ -7,7 +7,9 @@ import {
   PATH_MILESTONES,
   type PathMilestone,
 } from '@/lib/pathMilestones'
-import { LANDING_SCROLL_HEIGHT_VH } from '@/lib/butterflyScrollPath'
+import { scrollToProgress } from '@/lib/scrollNavigation'
+import { hasFinePointer, isMobileViewport } from '@/lib/viewport'
+import { useIsMobile } from '@/lib/useMediaQuery'
 import {
   getPassedMilestones,
   getSidebarColumnCount,
@@ -28,43 +30,11 @@ type FlyGhost = {
   o0: number // opacity the card had when the fold began (avoids a pop)
 }
 
-let flyRaf = 0
 const FOLD_MS = 650
-
-/** Cinematic eased scroll — cubic ease-in-out over `duration` ms. */
-function cinematicScrollTo(targetY: number, duration = 2800) {
-  cancelAnimationFrame(flyRaf)
-  const startY = window.scrollY
-  const dist = targetY - startY
-  const start = performance.now()
-
-  function easeInOutCubic(t: number) {
-    return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
-  }
-
-  function tick(now: number) {
-    const elapsed = now - start
-    const t = Math.min(elapsed / duration, 1)
-    window.scrollTo(0, startY + dist * easeInOutCubic(t))
-    if (t < 1) flyRaf = requestAnimationFrame(tick)
-    else flyRaf = 0
-  }
-
-  flyRaf = requestAnimationFrame(tick)
-}
-
-function scrollToProgress(progress: number, fast: boolean) {
-  const totalPx = (LANDING_SCROLL_HEIGHT_VH / 100) * window.innerHeight
-  const targetY = progress * totalPx
-  if (fast) {
-    window.scrollTo({ top: targetY, behavior: 'smooth' })
-  } else {
-    cinematicScrollTo(targetY)
-  }
-}
 
 export default function MilestoneChrome() {
   const { progress, velocity } = useScrollProgress()
+  const isMobile = useIsMobile()
   const [isCinematicFly, setIsCinematicFly] = useState(false)
 
   const { milestone, blend } = useMemo(
@@ -105,6 +75,12 @@ export default function MilestoneChrome() {
   const startFold = useCallback(
     (target: PathMilestone, slotIndex: number, slotTotal: number) => {
       if (flyGhostIdRef.current === target.id) return
+
+      // Sidebar fold is desktop-only; mobile uses bottom journey bar.
+      if (isMobileViewport()) {
+        foldedIdsRef.current.add(target.id)
+        return
+      }
 
       const live = cardRef.current?.getBoundingClientRect()
       const cached = cardRectCacheRef.current.get(target.id)
@@ -251,7 +227,7 @@ export default function MilestoneChrome() {
 
   const handleCardPointerMove = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      if (!isFocused || !cardRef.current) return
+      if (!isFocused || !cardRef.current || !hasFinePointer()) return
       const rect = cardRef.current.getBoundingClientRect()
       const px = (e.clientX - rect.left) / rect.width - 0.5
       const py = (e.clientY - rect.top) / rect.height - 0.5
@@ -266,6 +242,19 @@ export default function MilestoneChrome() {
 
   const cardMotionStyle = useMemo(() => {
     if (!showCard || !milestone) return undefined
+
+    if (isMobile) {
+      const enterLift = (1 - blend) * 22
+      const scale = 0.94 + blend * 0.06
+      return {
+        opacity: blend,
+        filter: `blur(${(1 - blend) * 3}px)`,
+        transform: `translateY(${enterLift}px) scale(${scale})`,
+        '--mc-blend': blend,
+        '--mc-glow': milestone.objectColor,
+      } as React.CSSProperties
+    }
+
     const enterLift = (1 - blend) * 32
     const enterTilt = (1 - blend) * 14
     const depth = -70 + blend * 95
@@ -283,7 +272,7 @@ export default function MilestoneChrome() {
       '--mc-blend': blend,
       '--mc-glow': milestone.objectColor,
     } as React.CSSProperties
-  }, [showCard, milestone, blend, tilt])
+  }, [showCard, milestone, blend, tilt, isMobile])
 
   return (
     <>

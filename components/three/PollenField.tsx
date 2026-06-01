@@ -3,13 +3,15 @@
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-
-const COUNT = 280
+import { useIsMobile } from '@/lib/useMediaQuery'
 
 export default function PollenField() {
   const pointsRef = useRef<THREE.Points>(null)
+  const isMobile = useIsMobile()
+  const count = isMobile ? 120 : 280
 
   const { geometry, material } = useMemo(() => {
+    const COUNT = count
     const geo = new THREE.BufferGeometry()
     const pos = new Float32Array(COUNT * 3)
     const scales = new Float32Array(COUNT)
@@ -44,12 +46,12 @@ export default function PollenField() {
     })
 
     return { geometry: geo, material: mat }
-  }, [])
+  }, [count])
 
   useFrame((_, delta) => {
     if (!pointsRef.current) return
     const pos = pointsRef.current.geometry.attributes.position as THREE.BufferAttribute
-    for (let i = 0; i < COUNT; i++) {
+    for (let i = 0; i < pos.count; i++) {
       let y = pos.getY(i)
       y -= delta * 1.2
       if (y < 2) y = 62

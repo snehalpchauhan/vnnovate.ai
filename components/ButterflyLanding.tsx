@@ -1,10 +1,14 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { LANDING_SCROLL_HEIGHT_VH } from '@/lib/butterflyScrollPath'
+import { useEffect, useState } from 'react'
+import { getLandingScrollHeightVh } from '@/lib/viewport'
+import MobileBodyClass from '@/components/MobileBodyClass'
 import ScrollDriver from '@/components/ScrollDriver'
 import Nav from '@/components/ui/Nav'
 import MilestoneChrome from '@/components/ui/MilestoneChrome'
+import MobileJourneyBar from '@/components/ui/MobileJourneyBar'
+import ScrollFlyHint from '@/components/ui/ScrollFlyHint'
 import SceneLoader from '@/components/ui/SceneLoader'
 import IntroHero from '@/components/ui/IntroHero'
 
@@ -14,9 +18,26 @@ const ButterflyLandingScene = dynamic(
 )
 
 export default function ButterflyLanding() {
+  const [scrollVh, setScrollVh] = useState(() =>
+    typeof window !== 'undefined' ? getLandingScrollHeightVh() : 5600
+  )
+
+  useEffect(() => {
+    const update = () => setScrollVh(getLandingScrollHeightVh())
+    update()
+    window.addEventListener('resize', update)
+    const mq = window.matchMedia('(max-width: 768px)')
+    mq.addEventListener('change', update)
+    return () => {
+      window.removeEventListener('resize', update)
+      mq.removeEventListener('change', update)
+    }
+  }, [])
+
   return (
     <>
-      <ScrollDriver />
+      <MobileBodyClass />
+      <ScrollDriver key={scrollVh} />
 
       <div className="canvas-wrapper">
         <ButterflyLandingScene />
@@ -27,6 +48,8 @@ export default function ButterflyLanding() {
       <div className="ui-overlay">
         <IntroHero />
         <MilestoneChrome />
+        <MobileJourneyBar />
+        <ScrollFlyHint />
       </div>
 
       <SceneLoader />
@@ -36,7 +59,7 @@ export default function ButterflyLanding() {
       {/* Tall spacer — scroll progress drives the butterfly path */}
       <div
         className="scroll-container scroll-container--landing"
-        style={{ height: `${LANDING_SCROLL_HEIGHT_VH}vh` }}
+        style={{ height: `${scrollVh}vh` }}
         aria-hidden
       />
     </>

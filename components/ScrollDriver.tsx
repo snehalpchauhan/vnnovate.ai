@@ -24,11 +24,13 @@ export default function ScrollDriver() {
     resetScrollStore()
     window.scrollTo(0, 0)
 
+    const mobile = window.matchMedia('(max-width: 768px)').matches
+
     const trigger = ScrollTrigger.create({
       trigger: container,
       start: 'top top',
       end: 'bottom bottom',
-      scrub: 1.15,
+      scrub: mobile ? 0.85 : 1.15,
       onUpdate: (self) => {
         setScrollProgress(self.progress)
       },
@@ -49,12 +51,18 @@ export default function ScrollDriver() {
     const onScrollInput = () => unlockIntroCamera()
     window.addEventListener('wheel', onScrollInput, { passive: true })
     window.addEventListener('touchstart', onScrollInput, { passive: true })
+    window.addEventListener('touchmove', onScrollInput, { passive: true })
+
+    const onResize = () => ScrollTrigger.refresh()
+    window.addEventListener('resize', onResize)
 
     return () => {
       cancelAnimationFrame(raf)
       trigger.kill()
       window.removeEventListener('wheel', onScrollInput)
       window.removeEventListener('touchstart', onScrollInput)
+      window.removeEventListener('touchmove', onScrollInput)
+      window.removeEventListener('resize', onResize)
       resetScrollStore()
     }
   }, [])

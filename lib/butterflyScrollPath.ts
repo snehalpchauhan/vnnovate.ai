@@ -1,7 +1,9 @@
 import * as THREE from 'three'
 
-/** Scroll height for the butterfly landing (matches CSS) — scales with milestone count */
-export const LANDING_SCROLL_HEIGHT_VH = 5600
+import { LANDING_SCROLL_HEIGHT_VH_DESKTOP } from './viewport'
+
+/** Scroll height for the butterfly landing (desktop default; mobile uses viewport helper). */
+export const LANDING_SCROLL_HEIGHT_VH = LANDING_SCROLL_HEIGHT_VH_DESKTOP
 
 const PATH_ORIGIN = new THREE.Vector3(-8.5, 4.35, 3.2)
 /** World-space stretch — longer arc between milestone stops */
