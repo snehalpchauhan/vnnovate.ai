@@ -72,6 +72,12 @@ export default function MilestoneChrome() {
 
   if (milestone) lastCardIdRef.current = milestone.id
 
+  // Toggle body class so the mobile journey bar can hide while the sheet is up
+  useEffect(() => {
+    if (!isMobile) return
+    document.documentElement.classList.toggle('is-sheet-active', !!showCard)
+  }, [isMobile, showCard])
+
   const startFold = useCallback(
     (target: PathMilestone, slotIndex: number, slotTotal: number) => {
       if (flyGhostIdRef.current === target.id) return
@@ -243,29 +249,31 @@ export default function MilestoneChrome() {
   const cardMotionStyle = useMemo(() => {
     if (!showCard || !milestone) return undefined
 
+    // Mobile: simple translateY slide-up — bottom-sheet CSS handles positioning
     if (isMobile) {
-      const enterLift = (1 - blend) * 22
-      const scale = 0.94 + blend * 0.06
       return {
-        opacity: blend,
-        filter: `blur(${(1 - blend) * 3}px)`,
-        transform: `translateY(${enterLift}px) scale(${scale})`,
         '--mc-blend': blend,
         '--mc-glow': milestone.objectColor,
       } as React.CSSProperties
     }
 
-    const enterLift = (1 - blend) * 32
-    const enterTilt = (1 - blend) * 14
-    const depth = -70 + blend * 95
-    const scale = 0.86 + blend * 0.14
+    // Desktop: panel unfolds from the right wall as the user slows to a stop.
+    // Low blend  → card is rotated away (right-wall), offset to the right, back in Z.
+    // Full blend → card is flat, at rest, forward.
+    const t = Math.pow(blend, 0.65)            // ease the entrance faster
+    const panelRotY = (1 - t) * -18            // rotateY: -18° → 0°
+    const slideX    = (1 - t) * 36             // translateX: 36px right → 0
+    const depth     = (1 - t) * -55            // translateZ: back → forward
+    const enterTiltX = (1 - t) * 8            // gentle X tilt as it opens
+    const scale     = 0.88 + t * 0.12
+
     return {
       opacity: blend,
-      filter: `blur(${(1 - blend) * 4}px)`,
+      filter: `blur(${(1 - t) * 3.5}px)`,
       transform: [
-        `rotateX(${tilt.y + enterTilt}deg)`,
-        `rotateY(${tilt.x}deg)`,
-        `translateY(${enterLift}px)`,
+        `rotateX(${tilt.y + enterTiltX}deg)`,
+        `rotateY(${tilt.x + panelRotY}deg)`,
+        `translateX(${slideX}px)`,
         `translateZ(${depth}px)`,
         `scale(${scale})`,
       ].join(' '),
@@ -277,7 +285,10 @@ export default function MilestoneChrome() {
   return (
     <>
       {/* ── Main milestone card (3D scene) ── */}
-      <div className="milestone-scene" aria-hidden={!showCard}>
+      <div
+        className={`milestone-scene${showCard ? ' is-active' : ''}`}
+        aria-hidden={!showCard}
+      >
         <div
           ref={cardRef}
           className={[

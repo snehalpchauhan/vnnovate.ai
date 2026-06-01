@@ -457,11 +457,41 @@ html.is-mobile body {
   position: absolute;
   right: 4vw;
   bottom: 8vh;
-  width: min(58vw, 640px);
-  perspective: 1400px;
-  perspective-origin: 72% 88%;
+  width: min(46vw, 580px);      /* narrower — leaves left half open for butterfly */
+  perspective: 1200px;
+  perspective-origin: 100% 80%; /* vanishing point on the right so panel folds in */
   z-index: 40;
   pointer-events: none;
+  /* Stage backdrop — frosted right-panel that separates butterfly from card */
+  isolation: isolate;
+}
+
+/* Frosted stage panel — glows in behind the card, separating the two visual zones */
+.milestone-scene::before {
+  content: '';
+  position: absolute;
+  inset: -56px -52px -120px -80px;
+  background: linear-gradient(
+    130deg,
+    transparent 0%,
+    rgba(218, 232, 248, 0.14) 42%,
+    rgba(215, 228, 248, 0.36) 100%
+  );
+  backdrop-filter: blur(14px) saturate(1.25);
+  -webkit-backdrop-filter: blur(14px) saturate(1.25);
+  border-left: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 32px 0 0 32px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(18px);
+  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: -1;
+}
+
+.milestone-scene.is-active::before {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 .milestone-card {
@@ -898,30 +928,74 @@ html.is-mobile body {
 }
 
 @media (max-width: 768px) {
+  /* ── Bottom-sheet card ────────────────────────────────────────────
+     Butterfly lives in the top ~52% of the screen. The card slides
+     up from below as a sheet and never overlaps the butterfly.        */
   .milestone-scene {
-    right: 50%;
-    transform: translateX(50%);
-    width: min(94vw, 420px);
-    bottom: calc(10vh + env(safe-area-inset-bottom, 0px));
-    perspective-origin: 50% 92%;
+    /* Reset desktop positioning */
+    right: 0;
+    left: 0;
+    bottom: 0;
+    top: auto;
+    width: 100%;
+    /* No 3D perspective on mobile — bottom sheet is flat */
+    perspective: none;
+    /* Sheet starts off-screen below, slides up when active */
+    transform: translateY(100%);
+    transition: transform 0.52s cubic-bezier(0.22, 1, 0.36, 1);
+    z-index: 46;
+    /* Make room for journey bar beneath the sheet */
+    padding-bottom: calc(4.25rem + env(safe-area-inset-bottom, 0px));
+    background: rgba(220, 233, 248, 0);
   }
 
+  /* Sheet slides up when the card is visible */
+  .milestone-scene.is-active {
+    transform: translateY(0);
+  }
+
+  /* Desktop stage backdrop — hidden on mobile */
+  .milestone-scene::before {
+    display: none;
+  }
+
+  /* The actual card fills the sheet width */
   .milestone-card {
-    max-height: min(46dvh, 440px);
+    position: relative;
+    width: 100%;
+    border-radius: 22px 22px 0 0;
     overflow: hidden;
+    max-height: 52dvh;
+    /* Cancel desktop opacity/transform — sheet CSS handles entrance */
+    opacity: 1 !important;
+    filter: none !important;
+    visibility: visible !important;
+    transform: none !important;
+    pointer-events: all;
+  }
+
+  /* Drag handle pill */
+  .milestone-card::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(99, 102, 241, 0.28);
+    margin: 0.75rem auto 0.25rem;
   }
 
   .milestone-card__inner {
-    max-height: min(46dvh, 440px);
+    max-height: calc(52dvh - 5rem);
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
-    padding-bottom: 0.25rem;
   }
 
   .milestone-card .mc-icon-strip {
-    padding: 1rem 1.15rem 0.75rem;
+    padding: 0.75rem 1.15rem 0.7rem;
+    border-radius: 0;
   }
 
   .milestone-card .mc-title,
@@ -934,40 +1008,29 @@ html.is-mobile body {
     padding-right: 1.15rem;
   }
 
-  .mc-title {
-    font-size: clamp(1.35rem, 5.5vw, 1.85rem);
-  }
-
-  .mc-body {
-    font-size: 0.82rem;
-    line-height: 1.6;
-  }
+  .mc-title { font-size: clamp(1.3rem, 5.2vw, 1.75rem); }
+  .mc-body  { font-size: 0.82rem; line-height: 1.6; }
 
   .mc-actions {
     flex-direction: column;
     align-items: stretch;
     gap: 0.5rem;
-    padding-bottom: 1.1rem !important;
+    padding-bottom: 1rem !important;
   }
 
-  .mc-btn {
-    justify-content: center;
-    width: 100%;
+  .mc-btn { justify-content: center; width: 100%; }
+  .mc-btn--fly { margin-left: 0; order: -1; }
+  .mc-chip { font-size: 0.65rem; }
+
+  /* Ambient glow — disable depth transform on mobile */
+  .milestone-card::after { transform: none; }
+
+  /* Staggered animations play once sheet is up */
+  .milestone-card.is-visible .mc-anim {
+    animation: mc-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
-  .mc-btn--fly {
-    margin-left: 0;
-    order: -1;
-  }
-
-  .mc-chip {
-    font-size: 0.65rem;
-  }
-
-  .is-touch .milestone-card.is-focused .milestone-card__inner {
-    animation: none;
-  }
-
+  /* Intro hero ────────────────────────────────────────────────────── */
   .intro-hero__center {
     width: min(92vw, 420px);
     padding: 1.5rem 1.35rem 1.35rem;
@@ -976,9 +1039,7 @@ html.is-mobile body {
     -webkit-overflow-scrolling: touch;
   }
 
-  .intro-hero__headline {
-    font-size: clamp(1.45rem, 6vw, 2rem);
-  }
+  .intro-hero__headline { font-size: clamp(1.45rem, 6vw, 2rem); }
 
   .intro-hero__btn {
     width: 100%;
@@ -989,12 +1050,21 @@ html.is-mobile body {
     bottom: calc(5vh + env(safe-area-inset-bottom, 0px));
   }
 
+  /* Scroll hint sits just above the journey bar */
   .scroll-fly-hint {
-    bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
     font-size: 0.65rem;
     z-index: 35;
   }
 
+  /* Journey bar — hide when sheet is active (card has its own progress context) */
+  .is-sheet-active .mobile-journey {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+
+  /* Mobile journey bar ───────────────────────────────────────────── */
   .mobile-journey {
     display: flex;
     flex-direction: column;
@@ -1008,12 +1078,13 @@ html.is-mobile body {
     padding: 0.55rem 0.75rem calc(0.65rem + env(safe-area-inset-bottom, 0px));
     background: linear-gradient(
       to top,
-      rgba(220, 233, 248, 0.96) 55%,
-      rgba(220, 233, 248, 0.72) 85%,
+      rgba(220, 233, 248, 0.97) 55%,
+      rgba(220, 233, 248, 0.72) 90%,
       transparent
     );
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    transition: opacity 0.3s ease;
   }
 
   .mobile-journey__meta {
@@ -1061,16 +1132,13 @@ html.is-mobile body {
     display: flex;
     gap: 0.35rem;
     overflow-x: auto;
-    overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x proximity;
     padding: 0.15rem 0.1rem 0.05rem;
     scrollbar-width: none;
   }
 
-  .mobile-journey__dots::-webkit-scrollbar {
-    display: none;
-  }
+  .mobile-journey__dots::-webkit-scrollbar { display: none; }
 
   .mobile-journey__dot {
     flex-shrink: 0;
@@ -1095,6 +1163,7 @@ html.is-mobile body {
     box-shadow: 0 0 10px color-mix(in srgb, var(--dot-color, #6366f1) 65%, transparent);
   }
 
+  /* Dialog sizing on mobile */
   .nav-dialog {
     width: min(94vw, 480px);
     max-height: min(86dvh, 600px);

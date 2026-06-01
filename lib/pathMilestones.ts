@@ -322,9 +322,11 @@ export const PATH_MILESTONES: PathMilestone[] = MILESTONE_DEFS.map((def, i) => (
   progress: milestoneProgress(i, MILESTONE_DEFS.length),
   span: MILESTONE_SPAN,
   objectKind: KINDS[i % KINDS.length],
-  focusSide: 1.5,
-  focusBehind: 1.45,
-  focusHeight: 1.05,
+  // Camera moves right of the butterfly, pushing it into the LEFT half of the
+  // frame — leaving the right half clean for the info card.
+  focusSide: 2.4,
+  focusBehind: 1.65,
+  focusHeight: 1.45,
 }))
 
 const up = new THREE.Vector3(0, 1, 0)
