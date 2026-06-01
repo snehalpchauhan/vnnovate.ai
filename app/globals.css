@@ -928,6 +928,10 @@ html.is-mobile body {
 }
 
 @media (max-width: 768px) {
+  :root {
+    --mobile-shift-y: 5dvh;
+  }
+
   .scroll-fly-hint {
     display: none;
   }
@@ -938,7 +942,7 @@ html.is-mobile body {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding: calc(4.25rem + env(safe-area-inset-top, 0px)) 1.25rem 0;
+    padding: calc(4.25rem + env(safe-area-inset-top, 0px) + var(--mobile-shift-y)) 1.25rem 0;
     pointer-events: none;
     text-align: center;
   }
@@ -1031,10 +1035,10 @@ html.is-mobile body {
   /* ── 3D floating milestone text (replaces glass block) ──────────── */
   .mobile-m3d {
     position: fixed;
-    top: calc(3.25rem + env(safe-area-inset-top, 0px));
+    top: calc(3.25rem + env(safe-area-inset-top, 0px) + var(--mobile-shift-y));
     left: 50%;
     right: auto;
-    bottom: calc(8.75rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(8.75rem + env(safe-area-inset-bottom, 0px) - var(--mobile-shift-y));
     transform: translateX(-50%);
     width: min(94vw, 400px);
     z-index: 42;

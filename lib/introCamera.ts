@@ -3,6 +3,7 @@ import {
   BUTTERFLY_PATH_START,
   getButterflyTangentAtProgress,
 } from './butterflyScrollPath'
+import { MOBILE_FRAME_DOWN } from './cameraConfig'
 
 /**
  * Intro framing uses the same logic as getMilestoneFocusFrame but applied
@@ -27,7 +28,7 @@ const INTRO = {
 const MOBILE_INTRO = {
   focusSide: 0,
   focusBehind: 2.05,
-  focusHeight: 1.95,
+  focusHeight: 1.95 + MOBILE_FRAME_DOWN,
   composeLift: 0.15,
   composeRight: 0,
 }
