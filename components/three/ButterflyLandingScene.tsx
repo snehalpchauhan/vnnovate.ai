@@ -10,6 +10,7 @@ import ButterflyChaseCamera from './ButterflyChaseCamera'
 import PollenField from './PollenField'
 import FlightPath from './FlightPath'
 import MilestoneObjects from './MilestoneObjects'
+import LandscapeMountains from './LandscapeMountains'
 import LandscapeTrees from './LandscapeTrees'
 import { INTRO_CAMERA_POSITION } from '@/lib/introCamera'
 
@@ -35,12 +36,13 @@ export default function ButterflyLandingScene() {
         gl.toneMappingExposure = 1.0
         gl.shadowMap.enabled = true
         gl.shadowMap.type = THREE.PCFShadowMap
-        scene.fog = new THREE.Fog(0xc9dff0, 35, 110)
+        scene.fog = new THREE.Fog(0xc9dff0, 40, 125)
       }}
     >
       <HdriEnvironment />
 
       <Suspense fallback={null}>
+        <LandscapeMountains />
         <LandscapeTrees />
       </Suspense>
 

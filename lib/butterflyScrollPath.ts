@@ -10,11 +10,11 @@ const PATH_STRETCH = 1.62
 const PATH_END = new THREE.Vector3(14.0, 10.65, -5.4)
 
 /** Full left↔right sweeps along the journey (higher = more S-curves). */
-const SERPENTINE_WAVES = 2.85
+const SERPENTINE_WAVES = 1.35
 /** Lateral swing in world X (left / right of the overall drift). */
-const SERPENTINE_X_AMPLITUDE = 5.25
+const SERPENTINE_X_AMPLITUDE = 2.4
 /** Gentle depth weave so the path isn’t flat in XZ only. */
-const SERPENTINE_Z_AMPLITUDE = 1.35
+const SERPENTINE_Z_AMPLITUDE = 0.55
 const PATH_CONTROL_POINT_COUNT = 28
 
 /**
