@@ -40,16 +40,16 @@ type Props = {
 }
 
 export default function MilestoneChrome({ cinematic }: Props) {
-  const { progress, velocity } = useScrollProgress()
+  const { progress, velocity, holdFlying } = useScrollProgress()
   const isMobile = useIsMobile()
   const { isCinematicFly, beginCinematicFly } = cinematic
 
   const { milestone, blend } = useMemo(
     () =>
       getMilestoneTextState(progress, velocity, {
-        ignoreVelocity: isCinematicFly,
+        ignoreVelocity: isCinematicFly || holdFlying,
       }),
-    [progress, velocity, isCinematicFly]
+    [progress, velocity, isCinematicFly, holdFlying]
   )
 
   const passed = useMemo(() => getPassedMilestones(progress), [progress])
@@ -262,12 +262,7 @@ export default function MilestoneChrome({ cinematic }: Props) {
         />
       )}
 
-      {isMobile && (
-        <MobileFlyButton
-          onFly={(t) => beginCinematicFly(t, false)}
-          disabled={isCinematicFly}
-        />
-      )}
+      {isMobile && <MobileFlyButton disabled={isCinematicFly} />}
 
       {/* Desktop: glass milestone card */}
       {!isMobile && (

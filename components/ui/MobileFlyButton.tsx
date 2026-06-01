@@ -1,51 +1,53 @@
 'use client'
 
-import { PATH_MILESTONES } from '@/lib/pathMilestones'
+import { useCallback, useEffect } from 'react'
+import { startHoldFlyScroll, stopHoldFlyScroll } from '@/lib/holdFlyScroll'
 import { useScrollProgress } from '@/lib/useScrollProgress'
 import { useIsMobile } from '@/lib/useMediaQuery'
 
 type Props = {
-  onFly: (targetProgress: number) => void
   disabled?: boolean
 }
 
-function getFlyTarget(progress: number): number | null {
-  if (progress < 0.02) {
-    return PATH_MILESTONES[0]?.progress ?? 0.055
-  }
-
-  let activeIdx = 0
-  let bestDist = Infinity
-  PATH_MILESTONES.forEach((m, i) => {
-    const d = Math.abs(progress - m.progress)
-    if (d < bestDist) {
-      bestDist = d
-      activeIdx = i
-    }
-  })
-
-  const next = PATH_MILESTONES[activeIdx + 1]
-  return next?.progress ?? null
-}
-
-export default function MobileFlyButton({ onFly, disabled }: Props) {
+export default function MobileFlyButton({ disabled }: Props) {
   const isMobile = useIsMobile()
-  const { progress } = useScrollProgress()
+  const { progress, holdFlying } = useScrollProgress()
+
+  const atEnd = progress >= 0.995
+
+  const onPressStart = useCallback(
+    (e: React.PointerEvent<HTMLButtonElement>) => {
+      if (disabled || atEnd) return
+      e.preventDefault()
+      e.currentTarget.setPointerCapture(e.pointerId)
+      startHoldFlyScroll()
+    },
+    [disabled, atEnd]
+  )
+
+  const onPressEnd = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    }
+    stopHoldFlyScroll()
+  }, [])
+
+  useEffect(() => {
+    return () => stopHoldFlyScroll()
+  }, [])
 
   if (!isMobile) return null
-
-  const nextTarget = getFlyTarget(progress)
-  const atEnd = nextTarget == null
 
   return (
     <button
       type="button"
-      className="mobile-fly-btn"
+      className={`mobile-fly-btn${holdFlying ? ' is-holding' : ''}`}
       disabled={disabled || atEnd}
-      onClick={() => {
-        if (nextTarget != null) onFly(nextTarget)
-      }}
-      aria-label={atEnd ? 'Journey complete' : 'Fly to next milestone'}
+      onPointerDown={onPressStart}
+      onPointerUp={onPressEnd}
+      onPointerCancel={onPressEnd}
+      onLostPointerCapture={onPressEnd}
+      aria-label={atEnd ? 'Journey complete' : 'Hold to fly'}
     >
       <span className="mobile-fly-btn__label">Fly</span>
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>

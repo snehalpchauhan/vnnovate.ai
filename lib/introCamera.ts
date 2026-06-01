@@ -25,10 +25,10 @@ const INTRO = {
 
 /** Mobile intro — camera behind butterfly, butterfly bottom-center on screen. */
 const MOBILE_INTRO = {
-  focusSide: 0.2,
-  focusBehind: 2.35,
-  focusHeight: 0.75,
-  composeLift: 2.35,
+  focusSide: 0.08,
+  focusBehind: 2.55,
+  focusHeight: 0.52,
+  composeLift: 3.85,
   composeRight: 0,
 }
 

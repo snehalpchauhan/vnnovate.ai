@@ -5,6 +5,7 @@ export type ScrollSnapshot = {
   velocity: number
   distance: number
   warpIntensity: number
+  holdFlying: boolean
 }
 
 const listeners = new Set<() => void>()
@@ -17,9 +18,20 @@ let warpIntensity = 0
 let lastProgress = 0
 let lastTime = 0
 let introCameraLocked = true
+let holdFlying = false
 
 export function isIntroCameraLocked(): boolean {
   return introCameraLocked
+}
+
+export function isHoldFlying(): boolean {
+  return holdFlying
+}
+
+export function setHoldFlying(active: boolean) {
+  if (holdFlying === active) return
+  holdFlying = active
+  notify()
 }
 
 export function unlockIntroCamera() {
@@ -27,7 +39,7 @@ export function unlockIntroCamera() {
 }
 
 export function getScrollSnapshot(): ScrollSnapshot {
-  return { progress, velocity, distance, warpIntensity }
+  return { progress, velocity, distance, warpIntensity, holdFlying }
 }
 
 export function decayScrollVelocity(dt: number) {
@@ -86,4 +98,5 @@ export function resetScrollStore() {
   lastProgress = 0
   lastTime = 0
   introCameraLocked = true
+  holdFlying = false
 }

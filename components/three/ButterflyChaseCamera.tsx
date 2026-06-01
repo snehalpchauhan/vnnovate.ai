@@ -129,7 +129,11 @@ export default function ButterflyChaseCamera() {
     } else {
       focusBlendRef.current = 0
       desiredPos.copy(chaseCam)
-      look.copy(chaseLook)
+      // Look well above the butterfly so it sits bottom-center on mobile.
+      look
+        .copy(pos)
+        .addScaledVector(up, MOBILE.composeLift)
+        .addScaledVector(smoothHeading, chase.lookAhead)
     }
 
     const lerp = introApplied.current ? (isMobile ? 0.11 : 0.09) : 1
