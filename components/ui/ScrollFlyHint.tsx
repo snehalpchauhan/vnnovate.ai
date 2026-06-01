@@ -12,7 +12,7 @@ export default function ScrollFlyHint() {
       aria-hidden={!visible}
     >
       <span className="scroll-fly-hint__chevron" />
-      Scroll to fly
+      Scroll up to fly
     </div>
   )
 }

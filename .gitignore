@@ -40,6 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# secrets
+KEYS
+
 # local / duplicate assets
 /model/
 .cursor/

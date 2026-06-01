@@ -13,7 +13,7 @@ export default function ScrollHint({ visible }: Props) {
       transition={{ duration: 0.5 }}
     >
       <div className="scroll-hint-line" />
-      Scroll to explore
+      Scroll up to explore
     </motion.div>
   )
 }

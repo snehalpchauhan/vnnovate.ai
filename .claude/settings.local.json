@@ -11,7 +11,12 @@
       "Bash(npx claude *)",
       "Bash(find /usr/local /opt/homebrew ~/.local -name \"claude\" -type f 2>/dev/null | head -5)",
       "Bash(cat ~/.claude.json 2>/dev/null || echo \"not found\")",
-      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --no-src-dir --import-alias \"@/*\" --yes)"
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --no-src-dir --import-alias \"@/*\" --yes)",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:3000)",
+      "mcp__Claude_Preview__preview_start"
     ]
   }
 }

@@ -41,7 +41,7 @@ export default function IntroHero() {
             className="intro-hero__btn intro-hero__btn--primary"
             onClick={() => window.scrollBy({ top: window.innerHeight * 0.6, behavior: 'smooth' })}
           >
-            Begin the journey ↓
+            Begin the journey ↑
           </button>
         </div>
       </div>
