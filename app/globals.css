@@ -1158,10 +1158,17 @@ html.is-mobile body {
 
   .landing-vignette {
     background: radial-gradient(
-      ellipse 90% 70% at 50% 72%,
-      transparent 35%,
-      rgba(255, 255, 255, 0.22) 100%
+      ellipse 100% 85% at 50% 58%,
+      transparent 42%,
+      rgba(255, 255, 255, 0.12) 100%
     );
+  }
+
+  /* Keep butterfly zone clear — less UI over the lower center */
+  .mobile-m3d {
+    top: calc(3.25rem + env(safe-area-inset-top, 0px));
+    max-height: 32dvh;
+    overflow: hidden;
   }
 
   /* Mobile journey bar ───────────────────────────────────────────── */

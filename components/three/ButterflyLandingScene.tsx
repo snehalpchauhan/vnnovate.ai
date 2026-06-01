@@ -26,7 +26,7 @@ export default function ButterflyLandingScene() {
           INTRO_CAMERA_POSITION.y,
           INTRO_CAMERA_POSITION.z,
         ],
-        fov: 50,
+        fov: isMobile ? 58 : 50,
         near: 0.01,
         far: 200000,
       }}
@@ -39,7 +39,7 @@ export default function ButterflyLandingScene() {
         gl.toneMappingExposure = 1.0
         gl.shadowMap.enabled = !isMobile
         if (!isMobile) gl.shadowMap.type = THREE.PCFShadowMap
-        scene.fog = new THREE.Fog(0xc9dff0, isMobile ? 28 : 40, isMobile ? 95 : 125)
+        scene.fog = new THREE.Fog(0xc9dff0, isMobile ? 12 : 40, isMobile ? 220 : 125)
       }}
     >
       <HdriEnvironment />

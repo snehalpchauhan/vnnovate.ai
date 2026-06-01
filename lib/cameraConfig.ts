@@ -7,13 +7,16 @@ export const CHASE_CAMERA = {
   lookDrop: -0.35,
 } as const
 
-/** Mobile chase — behind butterfly; composeLift pushes butterfly to bottom-center. */
+/**
+ * Mobile chase — camera behind & above, looking down at the butterfly so it
+ * sits in the lower third of the screen (just above the Fly button).
+ */
 export const MOBILE_CHASE_CAMERA = {
-  distance: 2.55,
-  side: 0.08,
-  height: 0.52,
-  lookAhead: 0.35,
-  lookDrop: 0,
-  /** Look target lifted above butterfly (world Y) — higher = butterfly lower on screen. */
-  composeLift: 3.75,
+  distance: 2.05,
+  side: 0,
+  /** Camera above the butterfly (behind + elevated). */
+  height: 1.95,
+  lookAhead: 0.5,
+  /** Small lift on look target — fine-tunes vertical screen position. */
+  lookLift: 0.15,
 } as const

@@ -63,6 +63,29 @@ function behindSideFrame(
   outLook.y = anchor.y + lookDrop
 }
 
+/** Mobile: high behind-camera, pitched down — butterfly lands above Fly button. */
+function frameMobileChase(
+  anchor: THREE.Vector3,
+  tangent: THREE.Vector3,
+  outCam: THREE.Vector3,
+  outLook: THREE.Vector3
+) {
+  const fwd = tangent.clone().normalize()
+  sideVec.crossVectors(fwd, up).normalize()
+  const m = MOBILE
+
+  outCam
+    .copy(anchor)
+    .addScaledVector(fwd, -m.distance)
+    .addScaledVector(sideVec, m.side)
+  outCam.y += m.height
+
+  outLook
+    .copy(anchor)
+    .addScaledVector(fwd, m.lookAhead)
+    .addScaledVector(up, m.lookLift)
+}
+
 export default function ButterflyChaseCamera() {
   const { camera } = useThree()
   const isMobile = useIsMobile()
@@ -71,7 +94,6 @@ export default function ButterflyChaseCamera() {
 
   useFrame((_, delta) => {
     const { progress, velocity } = getScrollSnapshot()
-    const chase = isMobile ? MOBILE : DESKTOP
 
     if (isIntroCameraLocked()) {
       if (isMobile) {
@@ -93,17 +115,21 @@ export default function ButterflyChaseCamera() {
     const pos = butterflyRefs.position
     smoothHeading.copy(getButterflyTangentAtProgress(progress))
 
-    behindSideFrame(
-      pos,
-      smoothHeading,
-      chase.distance,
-      chase.side,
-      chase.height,
-      chase.lookAhead,
-      chase.lookDrop,
-      chaseCam,
-      chaseLook
-    )
+    if (isMobile) {
+      frameMobileChase(pos, smoothHeading, chaseCam, chaseLook)
+    } else {
+      behindSideFrame(
+        pos,
+        smoothHeading,
+        DESKTOP.distance,
+        DESKTOP.side,
+        DESKTOP.height,
+        DESKTOP.lookAhead,
+        DESKTOP.lookDrop,
+        chaseCam,
+        chaseLook
+      )
+    }
 
     // Desktop only: swing to side focus frame at milestones.
     let focusBlend = 0
@@ -129,11 +155,7 @@ export default function ButterflyChaseCamera() {
     } else {
       focusBlendRef.current = 0
       desiredPos.copy(chaseCam)
-      // Look well above the butterfly so it sits bottom-center on mobile.
-      look
-        .copy(pos)
-        .addScaledVector(up, MOBILE.composeLift)
-        .addScaledVector(smoothHeading, chase.lookAhead)
+      look.copy(chaseLook)
     }
 
     const lerp = introApplied.current ? (isMobile ? 0.11 : 0.09) : 1
