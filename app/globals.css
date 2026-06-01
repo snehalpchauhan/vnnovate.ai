@@ -80,6 +80,8 @@ html { scroll-behavior: auto; }
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.7s ease;
+  perspective: 1400px;
+  perspective-origin: 50% 45%;
 }
 .intro-hero--visible {
   opacity: 1;
@@ -106,6 +108,49 @@ html { scroll-behavior: auto; }
   border-radius: 1.5rem;
   padding: 2.2rem 2.6rem 2rem;
   box-shadow: 0 8px 40px rgba(99, 102, 241, 0.12), 0 2px 8px rgba(0,0,0,0.06);
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+
+.intro-hero--visible .intro-hero__center {
+  animation: intro-panel-in 1.05s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.intro-hero--visible .intro-hero__eyebrow {
+  animation: intro-line-in 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+}
+.intro-hero--visible .intro-hero__headline {
+  animation: intro-line-in 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+}
+.intro-hero--visible .intro-hero__sub {
+  animation: intro-line-in 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.32s both;
+}
+.intro-hero--visible .intro-hero__actions {
+  animation: intro-line-in 0.85s cubic-bezier(0.22, 1, 0.36, 1) 0.44s both;
+}
+
+@keyframes intro-panel-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -44%) rotateX(16deg) scale(0.88);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotateX(0deg) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes intro-line-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) translateZ(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateZ(0);
+  }
 }
 
 .intro-hero__eyebrow {
@@ -399,39 +444,118 @@ body {
   .mh-rail { display: none; }
 }
 
-/* ── Milestone glassmorphic card ───────────────────────────────────── */
-.milestone-card {
+/* ── Milestone 3D card scene ───────────────────────────────────────── */
+.milestone-scene {
   position: absolute;
   right: 4vw;
   bottom: 8vh;
   width: min(58vw, 640px);
+  perspective: 1400px;
+  perspective-origin: 72% 88%;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.milestone-card {
+  position: relative;
+  width: 100%;
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(16px);
+  transform-style: preserve-3d;
+  will-change: transform, opacity, filter;
   transition:
-    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.7s ease,
-    visibility 0s linear 0.7s;
+    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.55s ease,
+    visibility 0s linear 0.55s;
 }
 
 .milestone-card.is-visible {
   visibility: visible;
-  transform: translateY(0);
   pointer-events: all;
   transition:
-    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.7s ease,
+    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.55s ease,
     visibility 0s linear 0s;
+}
+
+.milestone-card.is-focused .milestone-card__inner {
+  animation: mc-float 5s ease-in-out infinite;
+}
+
+.milestone-card__inner {
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+/* Staggered 3D content reveal */
+@keyframes mc-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 26px, -36px) rotateX(10deg);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotateX(0deg);
+  }
+}
+
+.milestone-card.is-visible .mc-anim {
+  animation: mc-rise 0.82s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.milestone-card.is-visible .mc-icon-strip { animation-delay: 0.04s; }
+.milestone-card.is-visible .mc-title { animation-delay: 0.1s; }
+.milestone-card.is-visible .mc-sub { animation-delay: 0.16s; }
+.milestone-card.is-visible .mc-body { animation-delay: 0.22s; }
+.milestone-card.is-visible .mc-stat { animation-delay: 0.28s; }
+.milestone-card.is-visible .mc-services { animation-delay: 0.34s; }
+.milestone-card.is-visible .mc-actions { animation-delay: 0.42s; }
+
+@keyframes mc-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+/* Ambient glow behind glass panel */
+.milestone-card::after {
+  content: '';
+  position: absolute;
+  inset: -18% -8%;
+  border-radius: 40%;
+  background: radial-gradient(
+    ellipse 80% 70% at 50% 60%,
+    color-mix(in srgb, var(--mc-glow, #6366f1) 42%, transparent),
+    transparent 72%
+  );
+  transform: translateZ(-90px);
+  opacity: calc(var(--mc-blend, 0) * 0.85);
+  z-index: -1;
+  pointer-events: none;
+  filter: blur(12px);
+  transition: opacity 0.5s ease;
 }
 
 .milestone-card.is-focused::before {
   border: 3px solid #6366f1;
-  box-shadow:
-    0 0 0 1px rgba(99, 102, 241, 0.35),
-    0 0 28px rgba(99, 102, 241, 0.35),
-    0 8px 40px rgba(15, 23, 60, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  animation: mc-border-glow 2.8s ease-in-out infinite;
+}
+
+@keyframes mc-border-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(99, 102, 241, 0.35),
+      0 0 24px rgba(99, 102, 241, 0.28),
+      0 8px 40px rgba(15, 23, 60, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px rgba(99, 102, 241, 0.45),
+      0 0 42px color-mix(in srgb, var(--mc-glow, #6366f1) 55%, transparent),
+      0 12px 48px rgba(15, 23, 60, 0.14),
+      inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  }
 }
 
 /* Fold fly — GPU-only transform animation, zero layout reflow */
@@ -550,15 +674,10 @@ body {
     inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
-/* Extra glow at peak focus */
+/* Extra glow at peak focus — border pulse handled by mc-border-glow */
 .milestone-card.is-focused::before {
   border-color: #6366f1;
   border-width: 3px;
-  box-shadow:
-    0 0 0 2px rgba(99, 102, 241, 0.28),
-    0 0 36px rgba(99, 102, 241, 0.38),
-    0 8px 40px rgba(15, 23, 60, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
 .milestone-card > * { position: relative; z-index: 1; }
@@ -766,15 +885,24 @@ body {
 }
 
 @media (max-width: 768px) {
-  .milestone-card {
+  .milestone-scene {
     right: 50%;
-    transform: translateX(50%) translateY(14px);
+    transform: translateX(50%);
     width: min(92vw, 420px);
     bottom: 8vh;
+    perspective-origin: 50% 88%;
   }
+}
 
-  .milestone-card.is-visible {
-    transform: translateX(50%) translateY(0);
+@media (prefers-reduced-motion: reduce) {
+  .intro-hero--visible .intro-hero__center,
+  .intro-hero--visible .intro-hero__eyebrow,
+  .intro-hero--visible .intro-hero__headline,
+  .intro-hero--visible .intro-hero__sub,
+  .intro-hero--visible .intro-hero__actions,
+  .milestone-card.is-visible .mc-anim,
+  .milestone-card.is-focused .milestone-card__inner {
+    animation: none !important;
   }
 }
 

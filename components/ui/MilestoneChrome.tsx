@@ -88,6 +88,7 @@ export default function MilestoneChrome() {
   const flyGhostIdRef = useRef<string | null>(null)
   const [flyGhost, setFlyGhost] = useState<FlyGhost | null>(null)
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(() => new Set())
+  const [tilt, setTilt] = useState({ x: 0, y: 0 })
 
   const isFocused = blend > 0.82
   // Hide the real card only when the ghost is fully covering it (phase='end')
@@ -248,46 +249,81 @@ export default function MilestoneChrome() {
     [beginCinematicFly]
   )
 
+  const handleCardPointerMove = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!isFocused || !cardRef.current) return
+      const rect = cardRef.current.getBoundingClientRect()
+      const px = (e.clientX - rect.left) / rect.width - 0.5
+      const py = (e.clientY - rect.top) / rect.height - 0.5
+      setTilt({ x: px * 10, y: -py * 7 })
+    },
+    [isFocused]
+  )
+
+  const handleCardPointerLeave = useCallback(() => {
+    setTilt({ x: 0, y: 0 })
+  }, [])
+
+  const cardMotionStyle = useMemo(() => {
+    if (!showCard || !milestone) return undefined
+    const enterLift = (1 - blend) * 32
+    const enterTilt = (1 - blend) * 14
+    const depth = -70 + blend * 95
+    const scale = 0.86 + blend * 0.14
+    return {
+      opacity: blend,
+      filter: `blur(${(1 - blend) * 4}px)`,
+      transform: [
+        `rotateX(${tilt.y + enterTilt}deg)`,
+        `rotateY(${tilt.x}deg)`,
+        `translateY(${enterLift}px)`,
+        `translateZ(${depth}px)`,
+        `scale(${scale})`,
+      ].join(' '),
+      '--mc-blend': blend,
+      '--mc-glow': milestone.objectColor,
+    } as React.CSSProperties
+  }, [showCard, milestone, blend, tilt])
+
   return (
     <>
-      {/* ── Main milestone card ── */}
-      <div
-        ref={cardRef}
-        className={[
-          'milestone-card',
-          showCard ? 'is-visible' : '',
-          isFocused ? 'is-focused' : '',
-        ]
-          .filter(Boolean)
-          .join(' ')}
-        style={
-          showCard
-            ? { opacity: blend, filter: `blur(${(1 - blend) * 5}px)` }
-            : undefined
-        }
-        aria-hidden={!showCard}
-      >
+      {/* ── Main milestone card (3D scene) ── */}
+      <div className="milestone-scene" aria-hidden={!showCard}>
+        <div
+          ref={cardRef}
+          className={[
+            'milestone-card',
+            showCard ? 'is-visible' : '',
+            isFocused ? 'is-focused' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+          style={cardMotionStyle}
+          onPointerMove={handleCardPointerMove}
+          onPointerLeave={handleCardPointerLeave}
+          aria-hidden={!showCard}
+        >
         {showCard && milestone ? (
-          <>
+          <div key={milestone.id} className="milestone-card__inner">
             <div
-              className="mc-icon-strip"
+              className="mc-icon-strip mc-anim"
               style={{ '--mc-color': milestone.objectColor } as React.CSSProperties}
             >
               <span className="mc-icon" aria-hidden>{milestone.icon}</span>
               <p className="mc-eyebrow">{milestone.eyebrow}</p>
             </div>
 
-            <h2 className="mc-title">
+            <h2 className="mc-title mc-anim">
               {milestone.title}
               {milestone.titleAccent && (
                 <span className="mc-accent">{milestone.titleAccent}</span>
               )}
             </h2>
-            <p className="mc-sub">{milestone.sub}</p>
-            <p className="mc-body">{milestone.body}</p>
+            <p className="mc-sub mc-anim">{milestone.sub}</p>
+            <p className="mc-body mc-anim">{milestone.body}</p>
 
             {milestone.stat && (
-              <div className="mc-stat">
+              <div className="mc-stat mc-anim">
                 <span
                   className="mc-stat__value"
                   style={{ color: milestone.objectColor }}
@@ -300,7 +336,7 @@ export default function MilestoneChrome() {
               </div>
             )}
 
-            <div className="mc-services">
+            <div className="mc-services mc-anim">
               {milestone.services.map((s) => (
                 <span
                   key={s}
@@ -312,7 +348,7 @@ export default function MilestoneChrome() {
               ))}
             </div>
 
-            <div className="mc-actions">
+            <div className="mc-actions mc-anim">
               <a
                 href="mailto:hello@vnnovate.ai"
                 className="mc-btn mc-btn--contact"
@@ -351,8 +387,9 @@ export default function MilestoneChrome() {
                 </svg>
               </button>
             </div>
-          </>
+          </div>
         ) : null}
+        </div>
       </div>
 
       {/* ── Fold fly ghost ── */}

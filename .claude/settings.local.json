@@ -16,7 +16,11 @@
       "Bash(npx tsc *)",
       "Bash(npm run *)",
       "Bash(curl -s http://localhost:3000)",
-      "mcp__Claude_Preview__preview_start"
+      "mcp__Claude_Preview__preview_start",
+      "WebFetch(domain:www.anthropic.com)",
+      "WebFetch(domain:docs.heygen.com)",
+      "WebFetch(domain:developers.heygen.com)",
+      "WebFetch(domain:www.gumloop.com)"
     ]
   }
 }
