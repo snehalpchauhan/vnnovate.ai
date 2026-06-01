@@ -16,6 +16,9 @@ import {
   getSidebarSlotRect,
   resolveFoldFromRect,
 } from '@/lib/milestoneUi'
+import type { useCinematicFly } from '@/lib/useCinematicFly'
+import MobileFlyButton from '@/components/ui/MobileFlyButton'
+import MobileMilestoneText from '@/components/ui/MobileMilestoneText'
 
 type FlyGhost = {
   id: string
@@ -32,10 +35,14 @@ type FlyGhost = {
 
 const FOLD_MS = 650
 
-export default function MilestoneChrome() {
+type Props = {
+  cinematic: ReturnType<typeof useCinematicFly>
+}
+
+export default function MilestoneChrome({ cinematic }: Props) {
   const { progress, velocity } = useScrollProgress()
   const isMobile = useIsMobile()
-  const [isCinematicFly, setIsCinematicFly] = useState(false)
+  const { isCinematicFly, beginCinematicFly } = cinematic
 
   const { milestone, blend } = useMemo(
     () =>
@@ -52,7 +59,6 @@ export default function MilestoneChrome() {
   const lastCardIdRef = useRef<string | null>(null)
   const shownMilestoneRef = useRef<PathMilestone | null>(null)
   const lastShownBlendRef = useRef(1)
-  const cinematicTargetRef = useRef<number | null>(null)
   const cardRectCacheRef = useRef<Map<string, DOMRect>>(new Map())
   const foldedIdsRef = useRef<Set<string>>(new Set())
   const flyGhostIdRef = useRef<string | null>(null)
@@ -71,12 +77,6 @@ export default function MilestoneChrome() {
   const showCard = milestone && blend >= 0.1 && !ghostCoversCard
 
   if (milestone) lastCardIdRef.current = milestone.id
-
-  // Toggle body class so the mobile journey bar can hide while the sheet is up
-  useEffect(() => {
-    if (!isMobile) return
-    document.documentElement.classList.toggle('is-sheet-active', !!showCard)
-  }, [isMobile, showCard])
 
   const startFold = useCallback(
     (target: PathMilestone, slotIndex: number, slotTotal: number) => {
@@ -180,38 +180,6 @@ export default function MilestoneChrome() {
     return () => clearTimeout(timer)
   }, [flyGhost, clearFold])
 
-  // Hold "cinematic" (velocity-ignoring) mode until the SCRUBBED progress
-  // actually reaches the target and settles — GSAP scrub lags the window
-  // scroll, so a fixed timer ended the fly too early and hid the next card.
-  useEffect(() => {
-    if (!isCinematicFly) return
-    const target = cinematicTargetRef.current
-    if (target == null) return
-
-    const arrived = Math.abs(progress - target) < 0.004 && velocity < 0.06
-    if (arrived) {
-      cinematicTargetRef.current = null
-      setIsCinematicFly(false)
-      return
-    }
-
-    // Safety: never get stuck ignoring velocity.
-    const safety = setTimeout(() => {
-      cinematicTargetRef.current = null
-      setIsCinematicFly(false)
-    }, 6000)
-    return () => clearTimeout(safety)
-  }, [isCinematicFly, progress, velocity])
-
-  const beginCinematicFly = useCallback(
-    (targetProgress: number, fast: boolean) => {
-      cinematicTargetRef.current = targetProgress
-      setIsCinematicFly(true)
-      scrollToProgress(targetProgress, fast)
-    },
-    []
-  )
-
   const handleFlyNext = useCallback(() => {
     if (!milestone) return
     const idx = PATH_MILESTONES.findIndex((m) => m.id === milestone.id)
@@ -284,7 +252,25 @@ export default function MilestoneChrome() {
 
   return (
     <>
-      {/* ── Main milestone card (3D scene) ── */}
+      {/* Mobile: floating 3D text (no glass block) */}
+      {isMobile && showCard && milestone && (
+        <MobileMilestoneText
+          key={milestone.id}
+          milestone={milestone}
+          blend={blend}
+          isFocused={isFocused}
+        />
+      )}
+
+      {isMobile && (
+        <MobileFlyButton
+          onFly={(t) => beginCinematicFly(t, false)}
+          disabled={isCinematicFly}
+        />
+      )}
+
+      {/* Desktop: glass milestone card */}
+      {!isMobile && (
       <div
         className={`milestone-scene${showCard ? ' is-active' : ''}`}
         aria-hidden={!showCard}
@@ -375,7 +361,7 @@ export default function MilestoneChrome() {
                 className="mc-btn mc-btn--fly"
                 onClick={handleFlyNext}
               >
-                <span>Fly on</span>
+                <span>Fly</span>
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
                   <path
                     d="M2 7h10M8 3l4 4-4 4"
@@ -391,9 +377,10 @@ export default function MilestoneChrome() {
         ) : null}
         </div>
       </div>
+      )}
 
-      {/* ── Fold fly ghost ── */}
-      {flyGhost && (
+      {/* ── Fold fly ghost (desktop) ── */}
+      {!isMobile && flyGhost && (
         <div
           className="milestone-fly"
           style={
@@ -428,8 +415,8 @@ export default function MilestoneChrome() {
         </div>
       )}
 
-      {/* ── Sidebar history ── */}
-      {passed.length > 0 && (
+      {/* ── Sidebar history (desktop) ── */}
+      {!isMobile && passed.length > 0 && (
         <div
           className="mh-rail"
           style={{ '--mh-cols': columnCount } as React.CSSProperties}

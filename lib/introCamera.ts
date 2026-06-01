@@ -23,30 +23,44 @@ const INTRO = {
   composeRight: 2.1,
 }
 
+/** Mobile intro — camera behind butterfly, butterfly bottom-center on screen. */
+const MOBILE_INTRO = {
+  focusSide: 0.2,
+  focusBehind: 2.35,
+  focusHeight: 0.75,
+  composeLift: 2.35,
+  composeRight: 0,
+}
+
 const _up = new THREE.Vector3(0, 1, 0)
-const _fwd = getButterflyTangentAtProgress(0).clone().normalize()
-const _side = new THREE.Vector3().crossVectors(_fwd, _up).normalize()
 
-// Camera position: right + behind + up relative to butterfly start
-export const INTRO_CAMERA_POSITION = BUTTERFLY_PATH_START.clone()
-  .addScaledVector(_side, INTRO.focusSide)
-  .addScaledVector(_fwd, -INTRO.focusBehind)
-INTRO_CAMERA_POSITION.y += INTRO.focusHeight
+function buildIntroFrame(opts: typeof INTRO) {
+  const fwd = getButterflyTangentAtProgress(0).clone().normalize()
+  const side = new THREE.Vector3().crossVectors(fwd, _up).normalize()
 
-// Screen-right derived from view direction (same as milestone focus)
-const _viewDir = new THREE.Vector3()
-  .subVectors(BUTTERFLY_PATH_START, INTRO_CAMERA_POSITION)
-  .normalize()
-const _screenRight = new THREE.Vector3()
-  .crossVectors(_viewDir, _up)
-  .normalize()
+  const camPos = BUTTERFLY_PATH_START.clone()
+    .addScaledVector(side, opts.focusSide)
+    .addScaledVector(fwd, -opts.focusBehind)
+  camPos.y += opts.focusHeight
 
-// Look target: shifted right in screen-space + lifted → butterfly reads bottom-left
-export const INTRO_CAMERA_TARGET = BUTTERFLY_PATH_START.clone()
-  .addScaledVector(_up, INTRO.composeLift)
-  .addScaledVector(_screenRight, INTRO.composeRight)
+  const viewDir = new THREE.Vector3().subVectors(BUTTERFLY_PATH_START, camPos).normalize()
+  const screenRight = new THREE.Vector3().crossVectors(viewDir, _up).normalize()
 
-const _cam = new THREE.PerspectiveCamera()
-_cam.position.copy(INTRO_CAMERA_POSITION)
-_cam.lookAt(INTRO_CAMERA_TARGET)
-export const INTRO_CAMERA_QUATERNION = _cam.quaternion.clone()
+  const target = BUTTERFLY_PATH_START.clone()
+    .addScaledVector(_up, opts.composeLift)
+    .addScaledVector(screenRight, opts.composeRight)
+
+  const cam = new THREE.PerspectiveCamera()
+  cam.position.copy(camPos)
+  cam.lookAt(target)
+
+  return { camPos, quat: cam.quaternion.clone() }
+}
+
+const desktopIntro = buildIntroFrame(INTRO)
+export const INTRO_CAMERA_POSITION = desktopIntro.camPos
+export const INTRO_CAMERA_QUATERNION = desktopIntro.quat
+
+const mobileIntro = buildIntroFrame(MOBILE_INTRO)
+export const MOBILE_INTRO_CAMERA_POSITION = mobileIntro.camPos
+export const MOBILE_INTRO_CAMERA_QUATERNION = mobileIntro.quat

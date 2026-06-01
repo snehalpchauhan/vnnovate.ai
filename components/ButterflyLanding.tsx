@@ -11,6 +11,7 @@ import MobileJourneyBar from '@/components/ui/MobileJourneyBar'
 import ScrollFlyHint from '@/components/ui/ScrollFlyHint'
 import SceneLoader from '@/components/ui/SceneLoader'
 import IntroHero from '@/components/ui/IntroHero'
+import { useCinematicFly } from '@/lib/useCinematicFly'
 
 const ButterflyLandingScene = dynamic(
   () => import('@/components/three/ButterflyLandingScene'),
@@ -18,6 +19,7 @@ const ButterflyLandingScene = dynamic(
 )
 
 export default function ButterflyLanding() {
+  const cinematic = useCinematicFly()
   const [scrollVh, setScrollVh] = useState(() =>
     typeof window !== 'undefined' ? getLandingScrollHeightVh() : 5600
   )
@@ -46,8 +48,8 @@ export default function ButterflyLanding() {
       <Nav />
 
       <div className="ui-overlay">
-        <IntroHero />
-        <MilestoneChrome />
+        <IntroHero beginCinematicFly={cinematic.beginCinematicFly} />
+        <MilestoneChrome cinematic={cinematic} />
         <MobileJourneyBar />
         <ScrollFlyHint />
       </div>

@@ -1,10 +1,17 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { PATH_MILESTONES } from '@/lib/pathMilestones'
 import { useScrollProgress } from '@/lib/useScrollProgress'
+import { useIsMobile } from '@/lib/useMediaQuery'
 
-export default function IntroHero() {
+type Props = {
+  beginCinematicFly: (targetProgress: number, fast: boolean) => void
+}
+
+export default function IntroHero({ beginCinematicFly }: Props) {
   const { progress } = useScrollProgress()
+  const isMobile = useIsMobile()
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -12,17 +19,30 @@ export default function IntroHero() {
     return () => clearTimeout(t)
   }, [])
 
-  // Fade out as soon as user starts scrolling — well before the first
-  // milestone (≈0.055) so the two never overlap on screen.
   const scrolled = progress > 0.008
   const show = visible && !scrolled
+
+  if (!show) return null
+
+  if (isMobile) {
+    return (
+      <div
+        className={`intro-hero intro-hero--visible intro-hero--mobile`}
+        aria-hidden={!show}
+      >
+        <p className="intro-hero__mobile-eyebrow">Intelligent systems, engineered</p>
+        <h1 className="intro-hero__mobile-headline">
+          Where AI meets <span className="intro-hero__accent">ambition</span>
+        </h1>
+      </div>
+    )
+  }
 
   return (
     <div
       className={`intro-hero ${show ? 'intro-hero--visible' : ''}`}
       aria-hidden={!show}
     >
-      {/* Centered glass card */}
       <div className="intro-hero__center">
         <p className="intro-hero__eyebrow">Intelligent systems, engineered</p>
 
@@ -39,14 +59,15 @@ export default function IntroHero() {
           <button
             type="button"
             className="intro-hero__btn intro-hero__btn--primary"
-            onClick={() => window.scrollBy({ top: window.innerHeight * 0.6, behavior: 'smooth' })}
+            onClick={() =>
+              beginCinematicFly(PATH_MILESTONES[0]?.progress ?? 0.055, false)
+            }
           >
             Begin the journey ↑
           </button>
         </div>
       </div>
 
-      {/* Scroll chevron at bottom center */}
       <div className="intro-hero__chevron" aria-hidden>
         <span />
         <span />

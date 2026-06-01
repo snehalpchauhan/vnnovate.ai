@@ -4,22 +4,20 @@ import { useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { butterflyRefs } from '@/lib/butterflyRefs'
-import { CHASE_CAMERA } from '@/lib/cameraConfig'
+import { CHASE_CAMERA, MOBILE_CHASE_CAMERA } from '@/lib/cameraConfig'
 import {
   INTRO_CAMERA_POSITION,
   INTRO_CAMERA_QUATERNION,
+  MOBILE_INTRO_CAMERA_POSITION,
+  MOBILE_INTRO_CAMERA_QUATERNION,
 } from '@/lib/introCamera'
+import { useIsMobile } from '@/lib/useMediaQuery'
 import { getButterflyTangentAtProgress } from '@/lib/butterflyScrollPath'
 import { getMilestoneFocusFrame, getMilestoneState } from '@/lib/pathMilestones'
 import { getScrollSnapshot, isIntroCameraLocked } from '@/lib/scrollStore'
 
-const {
-  distance: FOLLOW_DISTANCE,
-  side: FOLLOW_SIDE,
-  height: FOLLOW_HEIGHT,
-  lookAhead: LOOK_AHEAD,
-  lookDrop: LOOK_DROP,
-} = CHASE_CAMERA
+const DESKTOP = CHASE_CAMERA
+const MOBILE = MOBILE_CHASE_CAMERA
 
 /** Scroll velocity below this begins the arrival focus; ~0 fully focuses. */
 const ARRIVAL_VELOCITY = 0.16
@@ -47,6 +45,8 @@ function behindSideFrame(
   distance: number,
   side: number,
   height: number,
+  lookAhead: number,
+  lookDrop: number,
   outCam: THREE.Vector3,
   outLook: THREE.Vector3
 ) {
@@ -59,23 +59,32 @@ function behindSideFrame(
     .addScaledVector(sideVec, side)
   outCam.y += height
 
-  outLook.copy(anchor).addScaledVector(fwd, LOOK_AHEAD)
-  outLook.y = anchor.y + LOOK_DROP
+  outLook.copy(anchor).addScaledVector(fwd, lookAhead)
+  outLook.y = anchor.y + lookDrop
 }
 
 export default function ButterflyChaseCamera() {
   const { camera } = useThree()
+  const isMobile = useIsMobile()
   const introApplied = useRef(false)
   const focusBlendRef = useRef(0)
 
   useFrame((_, delta) => {
     const { progress, velocity } = getScrollSnapshot()
+    const chase = isMobile ? MOBILE : DESKTOP
 
     if (isIntroCameraLocked()) {
-      camera.position.copy(INTRO_CAMERA_POSITION)
-      camera.quaternion.copy(INTRO_CAMERA_QUATERNION)
-      smoothPos.copy(INTRO_CAMERA_POSITION)
-      smoothQuat.copy(INTRO_CAMERA_QUATERNION)
+      if (isMobile) {
+        camera.position.copy(MOBILE_INTRO_CAMERA_POSITION)
+        camera.quaternion.copy(MOBILE_INTRO_CAMERA_QUATERNION)
+        smoothPos.copy(MOBILE_INTRO_CAMERA_POSITION)
+        smoothQuat.copy(MOBILE_INTRO_CAMERA_QUATERNION)
+      } else {
+        camera.position.copy(INTRO_CAMERA_POSITION)
+        camera.quaternion.copy(INTRO_CAMERA_QUATERNION)
+        smoothPos.copy(INTRO_CAMERA_POSITION)
+        smoothQuat.copy(INTRO_CAMERA_QUATERNION)
+      }
       introApplied.current = true
       focusBlendRef.current = 0
       return
@@ -84,39 +93,47 @@ export default function ButterflyChaseCamera() {
     const pos = butterflyRefs.position
     smoothHeading.copy(getButterflyTangentAtProgress(progress))
 
-    // —— Flight pose: chase behind/above the butterfly ——
     behindSideFrame(
       pos,
       smoothHeading,
-      FOLLOW_DISTANCE,
-      FOLLOW_SIDE,
-      FOLLOW_HEIGHT,
+      chase.distance,
+      chase.side,
+      chase.height,
+      chase.lookAhead,
+      chase.lookDrop,
       chaseCam,
       chaseLook
     )
 
-    // —— Arrival: ease into a framed angle as we slow near a milestone ——
-    const { milestone, blend } = getMilestoneState(progress)
-    let targetFocus = 0
-    if (milestone) {
-      const slow = smoothstep(1 - Math.min(velocity / ARRIVAL_VELOCITY, 1))
-      targetFocus = smoothstep(blend) * slow
-    }
-    // Smooth the blend itself so the settle/release feels organic.
-    focusBlendRef.current +=
-      (targetFocus - focusBlendRef.current) * Math.min(1, delta * 4)
-    const focusBlend = focusBlendRef.current
+    // Desktop only: swing to side focus frame at milestones.
+    let focusBlend = 0
+    if (!isMobile) {
+      const { milestone, blend } = getMilestoneState(progress)
+      let targetFocus = 0
+      if (milestone) {
+        const slow = smoothstep(1 - Math.min(velocity / ARRIVAL_VELOCITY, 1))
+        targetFocus = smoothstep(blend) * slow
+      }
+      focusBlendRef.current +=
+        (targetFocus - focusBlendRef.current) * Math.min(1, delta * 4)
+      focusBlend = focusBlendRef.current
 
-    if (focusBlend > 0.001 && milestone) {
-      getMilestoneFocusFrame(milestone, focusCam, focusLook)
-      desiredPos.lerpVectors(chaseCam, focusCam, focusBlend)
-      look.lerpVectors(chaseLook, focusLook, focusBlend)
+      if (focusBlend > 0.001 && milestone) {
+        getMilestoneFocusFrame(milestone, focusCam, focusLook)
+        desiredPos.lerpVectors(chaseCam, focusCam, focusBlend)
+        look.lerpVectors(chaseLook, focusLook, focusBlend)
+      } else {
+        desiredPos.copy(chaseCam)
+        look.copy(chaseLook)
+      }
     } else {
+      focusBlendRef.current = 0
       desiredPos.copy(chaseCam)
       look.copy(chaseLook)
     }
 
-    applyCamera(camera, desiredPos, look, introApplied.current ? 0.09 : 1)
+    const lerp = introApplied.current ? (isMobile ? 0.11 : 0.09) : 1
+    applyCamera(camera, desiredPos, look, lerp)
     introApplied.current = true
   })
 
